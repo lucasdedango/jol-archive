@@ -1,7 +1,7 @@
 import os
-import re
 import html
 import sqlite3
+import json
 from bs4 import BeautifulSoup
 
 import config
@@ -19,7 +19,7 @@ def site_asset_path(rel_path, prefix):
     return prefix + rel_path.replace("\\", "/") if rel_path else ""
 
 def local_post_url(topic_id, page_num, post_id, prefix=""):
-    return f"{prefix}topic/{topic_id}/{page_num}.html#post{post_id}"
+    return f"{prefix}topic.html?topic_id={topic_id}&page={page_num}#post{post_id}"
 
 def make_sanitizer(asset_map):
     def sanitize_fragment(fragment, page_url, prefix):
@@ -71,28 +71,6 @@ def make_sanitizer(asset_map):
         return str(soup)
     return sanitize_fragment
 
-STYLE = """
-body { font-family: Arial, sans-serif; background:#f4f0e5; color:#222; margin:0; }
-header { background:#6b3f1d; color:white; padding:16px 24px; }
-main { max-width:1200px; margin:20px auto; padding:0 16px; }
-a { color:#8a2500; text-decoration:none; }
-a:hover { text-decoration:underline; }
-.topic, .post { background:white; border:1px solid #d8c7a8; border-radius:8px; padding:14px; margin:12px 0; }
-.meta { color:#666; font-size:13px; margin-top:4px; }
-.post { display:flex; gap:14px; }
-.avatar { width:90px; flex:0 0 90px; }
-.avatar img { max-width:80px; max-height:80px; border-radius:6px; border:1px solid #ccc; background:#eee; }
-.post-body { flex:1; min-width:0; }
-.post-author { font-weight:bold; margin-bottom:6px; }
-.nav { margin:16px 0; }
-img { max-width:100%; height:auto; }
-.inline-linked-image { display:block; max-width:700px; margin:8px 0; border:1px solid #ccc; border-radius:6px; }
-.gallery { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:12px; }
-.tile { background:white; border:1px solid #d8c7a8; border-radius:8px; padding:8px; overflow:hidden; }
-.tile img { width:100%; height:160px; object-fit:contain; background:#eee; }
-.small { font-size:12px; color:#666; word-break:break-all; margin-top:6px; }
-"""
-
 def main():
     db_path = os.path.join(config.OUT, "jol_archive.db")
     conn = init_db(db_path)
@@ -100,28 +78,29 @@ def main():
 
     site = os.path.join(config.OUT, "site")
     ensure_dir(site)
-    write_file(os.path.join(site, "style.css"), STYLE)
 
     asset_map = {row[0]: row[1] for row in cur.execute("SELECT original_url, local_path FROM assets").fetchall()}
     sanitize_fragment = make_sanitizer(asset_map)
+
+    templates_dir = os.path.join(os.path.dirname(__file__), "templates", "site")
+    for static_name in ["style.css", "index.html", "search.js", "search_tool.md", "topic.html", "topic.js"]:
+        with open(os.path.join(templates_dir, static_name), "r", encoding="utf-8") as f:
+            write_file(os.path.join(site, static_name), f.read())
 
     topics_rows = cur.execute("""
         SELECT topic_id, title, author, replies, views, last_page, first_post_date
         FROM topics ORDER BY topic_id DESC
     """).fetchall()
 
-    index = """<!doctype html><html><head><meta charset="utf-8"><title>Archive JOL</title><link rel="stylesheet" href="style.css"></head><body><header><h1>Archive JOL — Dofus</h1></header><main><p><a href="images.html">Mosaïque images</a> — <a href="avatars.html">Mosaïque avatars</a></p>"""
-
-    for topic_id, title, author, replies, views, last_page, first_post_date in topics_rows:
-        index += f"""
-        <div class="topic">
-          <a href="topic/{topic_id}/1.html"><strong>{html.escape(title or "")}</strong></a>
-          <div class="meta">par {html.escape(author or "?")} — {replies} réponses — {views} vues — {last_page} page(s) — premier post : {html.escape(first_post_date or "?")}</div>
-        </div>
-        """
-
-    index += "</main></body></html>"
-    write_file(os.path.join(site, "index.html"), index)
+    topics_data = [
+        {
+            "topic_id": topic_id, "title": title or "", "author": author or "",
+            "replies": replies or 0, "views": views or 0, "last_page": last_page or 1,
+            "first_post_date": first_post_date or ""
+        }
+        for topic_id, title, author, replies, views, last_page, first_post_date in topics_rows
+    ]
+    write_file(os.path.join(site, "topics.js"), "window.TOPICS_DATA = " + json.dumps(topics_data, ensure_ascii=False) + ";")
 
     for topic_id, title, slug, author, replies, views, last_page, first_post_date in cur.execute("""
         SELECT topic_id, title, slug, author, replies, views, last_page, first_post_date FROM topics
@@ -136,34 +115,30 @@ def main():
             """, (topic_id, page_num)).fetchall()
 
             page_url = topic_page_url(topic_id, slug, page_num)
-
-            page = f"""<!doctype html><html><head><meta charset="utf-8"><title>{html.escape(title or "")} — page {page_num}</title><link rel="stylesheet" href="../../style.css"></head><body><header><h1>{html.escape(title or "")}</h1></header><main><div class="nav"><a href="../../index.html">← Retour index</a></div><div class="meta">Sujet {topic_id} — page {page_num}/{last_page} — premier post : {html.escape(first_post_date or "?")}</div><div class="nav"><a href="{html.escape(original_topic_url)}">Voir le topic original sur JeuxOnline</a></div><div class="nav">"""
-
-            if page_num > 1:
-                page += f'<a href="{page_num - 1}.html">← Page précédente</a> '
-            if page_num < last_page:
-                page += f'<a href="{page_num + 1}.html">Page suivante →</a>'
-            page += "</div>"
-
+            export_posts = []
             for post_id, post_author, avatar_local, date_text, content_html in posts:
-                fixed = sanitize_fragment(content_html, page_url, "../../../")
-                avatar_html = ""
-                if avatar_local:
-                    avatar_html = f'<img src="{html.escape(site_asset_path(avatar_local, "../../../"))}" alt="avatar" loading="lazy">'
+                fixed = sanitize_fragment(content_html, page_url, "../../")
+                export_posts.append({
+                    "post_id": post_id,
+                    "author": post_author or "",
+                    "avatar_local_path": site_asset_path(avatar_local, "../../") if avatar_local else "",
+                    "date_text": date_text or "",
+                    "content_html": fixed,
+                })
 
-                page += f"""
-                <article class="post" id="post{post_id}">
-                  <div class="avatar">{avatar_html}</div>
-                  <div class="post-body">
-                    <div class="post-author">{html.escape(post_author or "?")}</div>
-                    <div class="meta">{html.escape(date_text or "")} — post #{post_id} — <a href="{html.escape(jol_post_url(post_id))}">original JOL</a></div>
-                    <div>{fixed}</div>
-                  </div>
-                </article>
-                """
-
-            page += "</main></body></html>"
-            write_file(os.path.join(site, "topic", str(topic_id), f"{page_num}.html"), page)
+            topic_payload = {
+                "topic_id": topic_id,
+                "title": title or "",
+                "author": author or "",
+                "replies": replies or 0,
+                "views": views or 0,
+                "last_page": last_page or 1,
+                "first_post_date": first_post_date or "",
+                "page_num": page_num,
+                "original_topic_url": original_topic_url,
+                "posts": export_posts,
+            }
+            write_file(os.path.join(site, "topic_data", str(topic_id), f"{page_num}.json"), json.dumps(topic_payload, ensure_ascii=False))
 
     avatar_paths = set(row[0] for row in cur.execute("""
         SELECT DISTINCT avatar_local_path FROM posts WHERE avatar_local_path IS NOT NULL AND avatar_local_path != ''
