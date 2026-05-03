@@ -34,3 +34,4 @@ L’interface est prévue pour gérer plusieurs pages/forums archivés :
 - Galerie images: `gallery.html?type=images`
 - Galerie avatars: `gallery.html?type=avatars`
 - Données: `galleries/images.json` et `galleries/avatars.json`.
+- Les fichiers images/avatars absents localement sont ignorés dans les galeries.

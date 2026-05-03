@@ -149,8 +149,13 @@ def main():
     assets_rows = cur.execute("SELECT original_url, local_path FROM assets ORDER BY local_path").fetchall()
     topic_images, avatar_images = [], []
 
+    missing_gallery_assets = 0
     for original_url, rel in assets_rows:
         if not rel:
+            continue
+        abs_asset = os.path.join(config.OUT, rel)
+        if not os.path.exists(abs_asset):
+            missing_gallery_assets += 1
             continue
         if rel in avatar_paths:
             avatar_images.append((original_url, rel))
@@ -181,6 +186,7 @@ def main():
     print("Mini-site généré :", site)
     print("Images topics :", len(topic_images))
     print("Avatars :", len(avatar_images))
+    print("Assets introuvables ignorés en galerie :", missing_gallery_assets)
     conn.close()
 
 if __name__ == "__main__":
