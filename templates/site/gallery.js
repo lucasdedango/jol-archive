@@ -3,9 +3,9 @@
   const type = params.get('type') || 'images';
   const isAvatars = type === 'avatars';
 
+  const base=(window.DATA_BASE||"./").replace(/\/$/, "");
   await new Promise((resolve, reject) => {
     const s = document.createElement('script');
-    const base=(window.DATA_BASE||"./").replace(/\/$/, "");
     s.src = `${base}/galleries/${isAvatars ? 'avatars' : 'images'}.js`;
     s.onload = resolve;
     s.onerror = reject;
