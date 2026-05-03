@@ -83,7 +83,7 @@ def main():
     sanitize_fragment = make_sanitizer(asset_map)
 
     templates_dir = os.path.join(os.path.dirname(__file__), "templates", "site")
-    for static_name in ["style.css", "index.html", "search.js", "search_tool.md", "topic.html", "topic.js"]:
+    for static_name in ["style.css", "index.html", "search.js", "search_tool.md", "topic.html", "topic.js", "gallery.html", "gallery.js"]:
         with open(os.path.join(templates_dir, static_name), "r", encoding="utf-8") as f:
             write_file(os.path.join(site, static_name), f.read())
 
@@ -158,27 +158,25 @@ def main():
             topic_images.append((original_url, rel))
 
     def first_usage(original_url):
-        return cur.execute("""
+        row = cur.execute("""
             SELECT topic_id, page_num, post_id FROM asset_usages
             WHERE original_url=? ORDER BY topic_id, page_num, post_id LIMIT 1
         """, (original_url,)).fetchone()
+        if not row:
+            return None
+        return {"topic_id": row[0], "page_num": row[1], "post_id": row[2]}
 
-    def gallery(title, images, avatars=False):
-        page = f"""<!doctype html><html><head><meta charset="utf-8"><title>{html.escape(title)}</title><link rel="stylesheet" href="style.css"></head><body><header><h1>{html.escape(title)}</h1></header><main><div class="nav"><a href="index.html">← Retour index</a></div><p>{len(images)} image(s)</p><div class="gallery">"""
+    def gallery_payload(images, avatars=False):
+        payload = []
         for original_url, rel in images:
-            src = html.escape("../" + rel)
-            usage_html = ""
+            item = {"original_url": original_url or "", "local_path": rel, "first_usage": None}
             if not avatars:
-                u = first_usage(original_url)
-                if u:
-                    topic_id, page_num, post_id = u
-                    usage_html = f'<div class="small"><a href="{html.escape(local_post_url(topic_id, page_num, post_id))}">Voir le premier post local utilisant cette image</a></div>'
-            page += f"""<div class="tile"><a href="{src}"><img src="{src}" loading="lazy" alt=""></a>{usage_html}<div class="small">{html.escape(original_url or "")}</div></div>"""
-        page += "</div></main></body></html>"
-        return page
+                item["first_usage"] = first_usage(original_url)
+            payload.append(item)
+        return payload
 
-    write_file(os.path.join(site, "images.html"), gallery("Mosaïque des images des topics", topic_images, False))
-    write_file(os.path.join(site, "avatars.html"), gallery("Mosaïque des avatars", avatar_images, True))
+    write_file(os.path.join(site, "galleries", "images.json"), json.dumps(gallery_payload(topic_images, False), ensure_ascii=False))
+    write_file(os.path.join(site, "galleries", "avatars.json"), json.dumps(gallery_payload(avatar_images, True), ensure_ascii=False))
 
     print("Mini-site généré :", site)
     print("Images topics :", len(topic_images))
