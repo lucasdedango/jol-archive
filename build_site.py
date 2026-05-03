@@ -88,7 +88,7 @@ def main():
             write_file(os.path.join(site, static_name), f.read())
 
     topics_rows = cur.execute("""
-        SELECT topic_id, title, author, replies, views, last_page, first_post_date
+        SELECT topic_id, title, author, replies, views, last_page, first_post_date, source_forum_url
         FROM topics ORDER BY topic_id DESC
     """).fetchall()
 
@@ -96,9 +96,10 @@ def main():
         {
             "topic_id": topic_id, "title": title or "", "author": author or "",
             "replies": replies or 0, "views": views or 0, "last_page": last_page or 1,
-            "first_post_date": first_post_date or ""
+            "first_post_date": first_post_date or "",
+            "source_forum_url": source_forum_url or ""
         }
-        for topic_id, title, author, replies, views, last_page, first_post_date in topics_rows
+        for topic_id, title, author, replies, views, last_page, first_post_date, source_forum_url in topics_rows
     ]
     write_file(os.path.join(site, "topics.js"), "window.TOPICS_DATA = " + json.dumps(topics_data, ensure_ascii=False) + ";")
 
@@ -134,6 +135,7 @@ def main():
                 "views": views or 0,
                 "last_page": last_page or 1,
                 "first_post_date": first_post_date or "",
+            "source_forum_url": source_forum_url or "",
                 "page_num": page_num,
                 "original_topic_url": original_topic_url,
                 "posts": export_posts,

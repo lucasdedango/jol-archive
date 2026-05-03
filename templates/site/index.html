@@ -19,6 +19,9 @@
       <label>Auteur
         <input id="q-author" type="text" placeholder="ex: Pseudonyme" />
       </label>
+      <label>Forum source
+        <input id="q-forum" type="text" placeholder="ex: /forum/123" />
+      </label>
       <label>Date min (premier post)
         <input id="q-start" type="date" />
       </label>
@@ -44,6 +47,14 @@
       <a href="search_tool.md">Aide de l'outil</a>
     </p>
     <div id="search-stats" class="meta"></div>
+    <div class="nav">
+      <button id="prev-page" type="button">← Précédent</button>
+      <span id="page-info" class="meta"></span>
+      <button id="next-page" type="button">Suivant →</button>
+      <label>Par page
+        <input id="q-page-size" type="number" min="10" step="10" value="50" />
+      </label>
+    </div>
   </section>
 
   <section id="topics-container"></section>
