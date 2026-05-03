@@ -20,6 +20,7 @@
   });
 
   const data = window.TOPIC_DATA;
+  const assetBase = `${base}/../`;
   if (!data) return;
   const esc = s => String(s ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
 
@@ -35,7 +36,7 @@
   nav.innerHTML = navLinks.join(' — ');
 
   document.getElementById('posts').innerHTML = data.posts.map(p => {
-    const avatar = p.avatar_local_path ? `<img src="${esc(p.avatar_local_path)}" alt="avatar" loading="lazy">` : '';
-    return `<article class="post" id="post${p.post_id}"><div class="avatar">${avatar}</div><div class="post-body"><div class="post-author">${esc(p.author || '?')}</div><div class="meta">${esc(p.date_text || '')} — post #${p.post_id} — <a href="https://forums.jeuxonline.info/p/${p.post_id}#post${p.post_id}">original JOL</a></div><div>${p.content_html || ''}</div></div></article>`;
+    const avatar = p.avatar_local_path ? `<img src="${assetBase}${esc(p.avatar_local_path)}" alt="avatar" loading="lazy">` : '';
+    return `<article class="post" id="post${p.post_id}"><div class="avatar">${avatar}</div><div class="post-body"><div class="post-author">${esc(p.author || '?')}</div><div class="meta">${esc(p.date_text || '')} — post #${p.post_id} — <a href="https://forums.jeuxonline.info/p/${p.post_id}#post${p.post_id}">original JOL</a></div><div>${(p.content_html || '').replaceAll('src="assets/', `src="${assetBase}assets/`).replaceAll('href="assets/', `href="${assetBase}assets/`)}</div></div></article>`;
   }).join('');
 })();
