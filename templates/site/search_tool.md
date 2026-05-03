@@ -1,37 +1,36 @@
 # Outil de recherche avancée
 
-Cette page décrit la recherche avancée disponible sur `index.html`.
+Le site final est généré dans `jol_archive_output/site` et contient à la fois le HTML/JS/CSS et les données exportées.
 
-## Compatibilité multi-archives forum
+## Recherche globale (type Google)
 
-L’interface est prévue pour gérer plusieurs pages/forums archivés :
-- chaque topic conserve son `source_forum_url`;
-- vous pouvez filtrer les résultats avec le champ **Forum source**.
+Le champ **Recherche globale (topics + réponses)** fonctionne ainsi :
+
+- `abraknyde` → recherche simple (mot présent dans les titres/auteurs/topics et dans les réponses).
+- `donjon abraknyde` → recherche multi-termes : les deux mots doivent être présents, dans n’importe quel ordre.
+- `"donjon abraknyde"` → recherche exacte : la séquence doit apparaître dans cet ordre.
+
+Les résultats affichent :
+- les topics filtrés,
+- puis les posts/réponses correspondants (avec lien direct vers le message).
 
 ## Filtres disponibles
 
-- **Mot-clé titre** : recherche textuelle partielle dans le titre du topic.
-- **Auteur** : filtre les topics selon le pseudo de l'auteur.
-- **Forum source** : filtre sur l’URL source du forum/page crawlée.
-- **Date min / Date max** : intervalle sur la date du premier post (`JJ/MM/AAAA`).
-- **Réponses min / max** : intervalle numérique sur le nombre de réponses.
-- **Vues min / max** : intervalle numérique sur le nombre de vues.
+- Mot-clé titre
+- Auteur
+- Forum source
+- Date min / max
+- Réponses min / max
+- Vues min / max
 
 ## Pagination des résultats
 
-- Les topics ne sont plus affichés d’un seul bloc.
-- Navigation par pages via **Précédent / Suivant**.
-- Taille de page configurable (par défaut : 50).
-
-## Détails techniques
-
-- Les données sont chargées depuis `topics.js`.
-- Le filtrage + pagination se font en JavaScript côté navigateur (`search.js`).
-- Les topics sont rendus dynamiquement par `topic.html` + `topic.js` à partir de `topic_data/<topic_id>/<page>.js`.
-- L’archive reste statique (pas de backend nécessaire).
+- Navigation par pages via **Précédent / Suivant**
+- Taille de page configurable
 
 ## Galeries
+
 - Galerie images: `gallery.html?type=images`
 - Galerie avatars: `gallery.html?type=avatars`
-- Données: `galleries/images.js` et `galleries/avatars.js`.
-- Les fichiers images/avatars absents localement sont ignorés dans les galeries.
+- Données: `galleries/images.js` et `galleries/avatars.js`
+- Les fichiers absents localement sont ignorés

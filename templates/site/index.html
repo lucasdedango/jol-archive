@@ -13,6 +13,9 @@
   <section class="search-panel">
     <h2>Recherche avancée</h2>
     <div class="search-grid">
+      <label>Recherche globale (topics + réponses)
+        <input id="q-text" type="text" placeholder='ex: abraknyde ou "donjon abraknyde"' />
+      </label>
       <label>Mot-clé titre
         <input id="q-title" type="text" placeholder="ex: Eniripsa" />
       </label>
@@ -58,8 +61,11 @@
   </section>
 
   <section id="topics-container"></section>
+<h2>Résultats dans les réponses</h2>
+<section id="posts-container"></section>
 </main>
 <script src="topics.js"></script>
+<script src="posts_search.js"></script>
 <script src="search.js"></script>
 </body>
 </html>

@@ -22,6 +22,6 @@
   document.getElementById('gallery-count').textContent = `${data.length} image(s)`;
   document.getElementById('gallery-grid').innerHTML = data.map(item => {
     const usageHtml = item.first_usage ? `<div class="small"><a href="topic.html?topic_id=${item.first_usage.topic_id}&page=${item.first_usage.page_num}#post${item.first_usage.post_id}">Voir le premier post local utilisant cette image</a></div>` : '';
-    return `<div class="tile"><a href="../${esc(item.local_path)}"><img src="../${esc(item.local_path)}" loading="lazy" alt=""></a>${usageHtml}<div class="small">${esc(item.original_url || '')}</div></div>`;
+    return `<div class="tile"><a href="${esc(item.local_path)}"><img src="${esc(item.local_path)}" loading="lazy" alt=""></a>${usageHtml}<div class="small">${esc(item.original_url || '')}</div></div>`;
   }).join('');
 })();

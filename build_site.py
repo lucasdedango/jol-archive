@@ -76,11 +76,16 @@ def main():
     conn = init_db(db_path)
     cur = conn.cursor()
 
-    site = os.path.join(os.path.dirname(__file__), "templates", "site")
+    site = os.path.join(config.OUT, "site")
     ensure_dir(site)
 
     asset_map = {row[0]: row[1] for row in cur.execute("SELECT original_url, local_path FROM assets").fetchall()}
     sanitize_fragment = make_sanitizer(asset_map)
+
+    templates_dir = os.path.join(os.path.dirname(__file__), "templates", "site")
+    for static_name in ["style.css", "index.html", "search.js", "search_tool.md", "topic.html", "topic.js", "gallery.html", "gallery.js"]:
+        with open(os.path.join(templates_dir, static_name), "r", encoding="utf-8") as f:
+            write_file(os.path.join(site, static_name), f.read())
 
     topics_rows = cur.execute("""
         SELECT topic_id, title, author, replies, views, last_page, first_post_date, source_forum_url
@@ -113,11 +118,11 @@ def main():
             page_url = topic_page_url(topic_id, slug, page_num)
             export_posts = []
             for post_id, post_author, avatar_local, date_text, content_html in posts:
-                fixed = sanitize_fragment(content_html, page_url, "../../")
+                fixed = sanitize_fragment(content_html, page_url, "")
                 export_posts.append({
                     "post_id": post_id,
                     "author": post_author or "",
-                    "avatar_local_path": site_asset_path(avatar_local, "../../") if avatar_local else "",
+                    "avatar_local_path": site_asset_path(avatar_local, "") if avatar_local else "",
                     "date_text": date_text or "",
                     "content_html": fixed,
                 })
@@ -178,7 +183,24 @@ def main():
     write_file(os.path.join(site, "galleries", "images.js"), "window.GALLERY_DATA = " + json.dumps(gallery_payload(topic_images, False), ensure_ascii=False) + ";")
     write_file(os.path.join(site, "galleries", "avatars.js"), "window.GALLERY_DATA = " + json.dumps(gallery_payload(avatar_images, True), ensure_ascii=False) + ";")
 
-    print("HTML templates utilisés directement :", site)
+
+    posts_search_rows = cur.execute("""
+        SELECT topic_id, page_num, post_id, author, date_text, content_text
+        FROM posts ORDER BY topic_id, page_num, post_id
+    """).fetchall()
+    posts_search = [
+        {
+            "topic_id": topic_id,
+            "page_num": page_num,
+            "post_id": post_id,
+            "author": author or "",
+            "date_text": date_text or "",
+            "content_text": content_text or "",
+        }
+        for topic_id, page_num, post_id, author, date_text, content_text in posts_search_rows
+    ]
+    write_file(os.path.join(site, "posts_search.js"), "window.POSTS_SEARCH = " + json.dumps(posts_search, ensure_ascii=False) + ";")
+    print("Mini-site généré :", site)
     print("Images topics :", len(topic_images))
     print("Avatars :", len(avatar_images))
     print("Assets introuvables ignorés en galerie :", missing_gallery_assets)
