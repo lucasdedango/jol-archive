@@ -78,6 +78,8 @@ def main():
 
     site = os.path.join(config.OUT, "data")
     ensure_dir(site)
+    site_mirror = os.path.join(os.path.dirname(__file__), "templates", "site", "data")
+    ensure_dir(site_mirror)
 
     asset_map = {row[0]: row[1] for row in cur.execute("SELECT original_url, local_path FROM assets").fetchall()}
     sanitize_fragment = make_sanitizer(asset_map)
@@ -97,6 +99,7 @@ def main():
         for topic_id, title, author, replies, views, last_page, first_post_date, source_forum_url in topics_rows
     ]
     write_file(os.path.join(site, "topics.js"), "window.TOPICS_DATA = " + json.dumps(topics_data, ensure_ascii=False) + ";")
+    write_file(os.path.join(site_mirror, "topics.js"), "window.TOPICS_DATA = " + json.dumps(topics_data, ensure_ascii=False) + ";")
 
     for topic_id, title, slug, author, replies, views, last_page, first_post_date, source_forum_url in cur.execute("""
         SELECT topic_id, title, slug, author, replies, views, last_page, first_post_date, source_forum_url FROM topics
@@ -135,7 +138,9 @@ def main():
                 "original_topic_url": original_topic_url,
                 "posts": export_posts,
             }
-            write_file(os.path.join(site, "topic_data", str(topic_id), f"{page_num}.js"), "window.TOPIC_DATA = " + json.dumps(topic_payload, ensure_ascii=False) + ";")
+            payload_js = "window.TOPIC_DATA = " + json.dumps(topic_payload, ensure_ascii=False) + ";"
+            write_file(os.path.join(site, "topic_data", str(topic_id), f"{page_num}.js"), payload_js)
+            write_file(os.path.join(site_mirror, "topic_data", str(topic_id), f"{page_num}.js"), payload_js)
 
     avatar_paths = set(row[0] for row in cur.execute("""
         SELECT DISTINCT avatar_local_path FROM posts WHERE avatar_local_path IS NOT NULL AND avatar_local_path != ''
@@ -175,8 +180,12 @@ def main():
             payload.append(item)
         return payload
 
-    write_file(os.path.join(site, "galleries", "images.js"), "window.GALLERY_DATA = " + json.dumps(gallery_payload(topic_images, False), ensure_ascii=False) + ";")
-    write_file(os.path.join(site, "galleries", "avatars.js"), "window.GALLERY_DATA = " + json.dumps(gallery_payload(avatar_images, True), ensure_ascii=False) + ";")
+    images_js = "window.GALLERY_DATA = " + json.dumps(gallery_payload(topic_images, False), ensure_ascii=False) + ";"
+    write_file(os.path.join(site, "galleries", "images.js"), images_js)
+    write_file(os.path.join(site_mirror, "galleries", "images.js"), images_js)
+    avatars_js = "window.GALLERY_DATA = " + json.dumps(gallery_payload(avatar_images, True), ensure_ascii=False) + ";"
+    write_file(os.path.join(site, "galleries", "avatars.js"), avatars_js)
+    write_file(os.path.join(site_mirror, "galleries", "avatars.js"), avatars_js)
 
 
     posts_search_rows = cur.execute("""
@@ -194,8 +203,11 @@ def main():
         }
         for topic_id, page_num, post_id, author, date_text, content_text in posts_search_rows
     ]
-    write_file(os.path.join(site, "posts_search.js"), "window.POSTS_SEARCH = " + json.dumps(posts_search, ensure_ascii=False) + ";")
+    posts_js = "window.POSTS_SEARCH = " + json.dumps(posts_search, ensure_ascii=False) + ";"
+    write_file(os.path.join(site, "posts_search.js"), posts_js)
+    write_file(os.path.join(site_mirror, "posts_search.js"), posts_js)
     print("Data générée :", site)
+    print("Mirror data pour frontend file:// :", site_mirror)
     print("Images topics :", len(topic_images))
     print("Avatars :", len(avatar_images))
     print("Assets introuvables ignorés en galerie :", missing_gallery_assets)
