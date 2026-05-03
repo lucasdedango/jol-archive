@@ -76,16 +76,11 @@ def main():
     conn = init_db(db_path)
     cur = conn.cursor()
 
-    site = os.path.join(config.OUT, "site")
+    site = os.path.join(config.OUT, "data")
     ensure_dir(site)
 
     asset_map = {row[0]: row[1] for row in cur.execute("SELECT original_url, local_path FROM assets").fetchall()}
     sanitize_fragment = make_sanitizer(asset_map)
-
-    templates_dir = os.path.join(os.path.dirname(__file__), "templates", "site")
-    for static_name in ["style.css", "index.html", "search.js", "search_tool.md", "topic.html", "topic.js", "gallery.html", "gallery.js"]:
-        with open(os.path.join(templates_dir, static_name), "r", encoding="utf-8") as f:
-            write_file(os.path.join(site, static_name), f.read())
 
     topics_rows = cur.execute("""
         SELECT topic_id, title, author, replies, views, last_page, first_post_date, source_forum_url
@@ -200,7 +195,7 @@ def main():
         for topic_id, page_num, post_id, author, date_text, content_text in posts_search_rows
     ]
     write_file(os.path.join(site, "posts_search.js"), "window.POSTS_SEARCH = " + json.dumps(posts_search, ensure_ascii=False) + ";")
-    print("Mini-site généré :", site)
+    print("Data générée :", site)
     print("Images topics :", len(topic_images))
     print("Avatars :", len(avatar_images))
     print("Assets introuvables ignorés en galerie :", missing_gallery_assets)

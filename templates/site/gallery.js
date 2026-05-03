@@ -5,7 +5,8 @@
 
   await new Promise((resolve, reject) => {
     const s = document.createElement('script');
-    s.src = `galleries/${isAvatars ? 'avatars' : 'images'}.js`;
+    const base=(window.DATA_BASE||"./").replace(/\/$/, "");
+    s.src = `${base}/galleries/${isAvatars ? 'avatars' : 'images'}.js`;
     s.onload = resolve;
     s.onerror = reject;
     document.head.appendChild(s);

@@ -7,7 +7,8 @@
     return;
   }
 
-  const dataUrl = `topic_data/${topicId}/${page}.js`;
+  const base=(window.DATA_BASE||"./").replace(/\/$/, "");
+  const dataUrl = `${base}/topic_data/${topicId}/${page}.js`;
   await new Promise((resolve, reject) => {
     const s = document.createElement('script');
     s.src = dataUrl;
