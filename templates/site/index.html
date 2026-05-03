@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Archive JOL</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><h1>Archive JOL — Dofus</h1></header>
+<main>
+  <p><a href="gallery.html?type=images">Mosaïque images</a> — <a href="gallery.html?type=avatars">Mosaïque avatars</a></p>
+
+  <section class="search-panel">
+    <h2>Recherche avancée</h2>
+    <div class="search-grid">
+      <label>Recherche globale (topics + réponses)
+        <input id="q-text" type="text" placeholder='ex: abraknyde ou "donjon abraknyde"' />
+      </label>
+      <label>Mot-clé titre
+        <input id="q-title" type="text" placeholder="ex: Eniripsa" />
+      </label>
+      <label>Auteur
+        <input id="q-author" type="text" placeholder="ex: Pseudonyme" />
+      </label>
+      <label>Forum source
+        <input id="q-forum" type="text" placeholder="ex: /forum/123" />
+      </label>
+      <label>Date min (premier post)
+        <input id="q-start" type="date" />
+      </label>
+      <label>Date max (premier post)
+        <input id="q-end" type="date" />
+      </label>
+      <label>Réponses min
+        <input id="q-replies-min" type="number" min="0" />
+      </label>
+      <label>Réponses max
+        <input id="q-replies-max" type="number" min="0" />
+      </label>
+      <label>Vues min
+        <input id="q-views-min" type="number" min="0" />
+      </label>
+      <label>Vues max
+        <input id="q-views-max" type="number" min="0" />
+      </label>
+    </div>
+    <p>
+      <button id="apply-search">Filtrer</button>
+      <button id="reset-search" type="button">Réinitialiser</button>
+      <a href="search_tool.md">Aide de l'outil</a>
+    </p>
+    <div id="search-stats" class="meta"></div>
+    <div class="nav">
+      <button id="prev-page" type="button">← Précédent</button>
+      <span id="page-info" class="meta"></span>
+      <button id="next-page" type="button">Suivant →</button>
+      <label>Par page
+        <input id="q-page-size" type="number" min="10" step="10" value="50" />
+      </label>
+    </div>
+  </section>
+
+  <section id="topics-container"></section>
+<h2>Résultats dans les réponses</h2>
+<section id="posts-container"></section>
+</main>
+<script src="config.js"></script>
+<script src="search.js"></script>
+</body>
+</html>
