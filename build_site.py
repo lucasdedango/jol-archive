@@ -135,7 +135,7 @@ def main():
                 "original_topic_url": original_topic_url,
                 "posts": export_posts,
             }
-            write_file(os.path.join(site, "topic_data", str(topic_id), f"{page_num}.json"), json.dumps(topic_payload, ensure_ascii=False))
+            write_file(os.path.join(site, "topic_data", str(topic_id), f"{page_num}.js"), "window.TOPIC_DATA = " + json.dumps(topic_payload, ensure_ascii=False) + ";")
 
     avatar_paths = set(row[0] for row in cur.execute("""
         SELECT DISTINCT avatar_local_path FROM posts WHERE avatar_local_path IS NOT NULL AND avatar_local_path != ''
@@ -175,8 +175,8 @@ def main():
             payload.append(item)
         return payload
 
-    write_file(os.path.join(site, "galleries", "images.json"), json.dumps(gallery_payload(topic_images, False), ensure_ascii=False))
-    write_file(os.path.join(site, "galleries", "avatars.json"), json.dumps(gallery_payload(avatar_images, True), ensure_ascii=False))
+    write_file(os.path.join(site, "galleries", "images.js"), "window.GALLERY_DATA = " + json.dumps(gallery_payload(topic_images, False), ensure_ascii=False) + ";")
+    write_file(os.path.join(site, "galleries", "avatars.js"), "window.GALLERY_DATA = " + json.dumps(gallery_payload(avatar_images, True), ensure_ascii=False) + ";")
 
     print("HTML templates utilisés directement :", site)
     print("Images topics :", len(topic_images))

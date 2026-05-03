@@ -27,11 +27,11 @@ L’interface est prévue pour gérer plusieurs pages/forums archivés :
 
 - Les données sont chargées depuis `topics.js`.
 - Le filtrage + pagination se font en JavaScript côté navigateur (`search.js`).
-- Les topics sont rendus dynamiquement par `topic.html` + `topic.js` à partir de `topic_data/<topic_id>/<page>.json`.
+- Les topics sont rendus dynamiquement par `topic.html` + `topic.js` à partir de `topic_data/<topic_id>/<page>.js`.
 - L’archive reste statique (pas de backend nécessaire).
 
 ## Galeries
 - Galerie images: `gallery.html?type=images`
 - Galerie avatars: `gallery.html?type=avatars`
-- Données: `galleries/images.json` et `galleries/avatars.json`.
+- Données: `galleries/images.js` et `galleries/avatars.js`.
 - Les fichiers images/avatars absents localement sont ignorés dans les galeries.

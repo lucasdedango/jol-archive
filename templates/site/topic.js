@@ -7,14 +7,19 @@
     return;
   }
 
-  const dataUrl = `topic_data/${topicId}/${page}.json`;
-  const res = await fetch(dataUrl);
-  if (!res.ok) {
+  const dataUrl = `topic_data/${topicId}/${page}.js`;
+  await new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = dataUrl;
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  }).catch(() => {
     document.getElementById('topic-title').textContent = 'Erreur de chargement';
-    return;
-  }
-  const data = await res.json();
+  });
 
+  const data = window.TOPIC_DATA;
+  if (!data) return;
   const esc = s => String(s ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
 
   document.title = `${data.title} — page ${data.page_num}`;
@@ -28,16 +33,8 @@
   if (data.page_num < data.last_page) navLinks.push(`<a href="topic.html?topic_id=${data.topic_id}&page=${data.page_num + 1}">Page suivante →</a>`);
   nav.innerHTML = navLinks.join(' — ');
 
-  const posts = document.getElementById('posts');
-  posts.innerHTML = data.posts.map(p => {
+  document.getElementById('posts').innerHTML = data.posts.map(p => {
     const avatar = p.avatar_local_path ? `<img src="${esc(p.avatar_local_path)}" alt="avatar" loading="lazy">` : '';
-    return `<article class="post" id="post${p.post_id}">
-      <div class="avatar">${avatar}</div>
-      <div class="post-body">
-        <div class="post-author">${esc(p.author || '?')}</div>
-        <div class="meta">${esc(p.date_text || '')} — post #${p.post_id} — <a href="https://forums.jeuxonline.info/p/${p.post_id}#post${p.post_id}">original JOL</a></div>
-        <div>${p.content_html || ''}</div>
-      </div>
-    </article>`;
+    return `<article class="post" id="post${p.post_id}"><div class="avatar">${avatar}</div><div class="post-body"><div class="post-author">${esc(p.author || '?')}</div><div class="meta">${esc(p.date_text || '')} — post #${p.post_id} — <a href="https://forums.jeuxonline.info/p/${p.post_id}#post${p.post_id}">original JOL</a></div><div>${p.content_html || ''}</div></div></article>`;
   }).join('');
 })();
