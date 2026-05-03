@@ -1,1 +1,1 @@
-window.DATA_BASE = './data';
+window.DATA_BASE = '../../jol_archive_output/data';
